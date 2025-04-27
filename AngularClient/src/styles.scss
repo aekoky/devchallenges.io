@@ -1,0 +1,56 @@
+/* You can add global styles to this file, and also import other style files */
+@use "tailwindcss";
+@use '@angular/material' as mat;
+
+@font-face {
+    font-family: 'Outfit';
+    font-display: swap;
+    font-style: normal;
+    src: url("assets/fonts/Outfit/Outfit-VariableFont_wght.ttf") format("truetype");
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: Outfit;
+}
+
+html {
+    @include mat.theme((typography: Outfit,
+            density: 0));
+
+}
+
+.bg-progress {
+    background-color: #F5D565;
+}
+
+.bg-done {
+    background-color: #A0ECB1;
+}
+
+.bg-refused {
+    background-color: #F7D4D3;
+}
+
+.bg-pending {
+    background-color: #E3E8EF;
+}
+
+.bg-new {
+    background-color: #F5E8D5;
+}
+
+.bg-tulip-tree {
+    background-color: #E9A23B;
+}
+.bg-flame-pea {
+    background-color: #DD524C;
+}
+.bg-emerald {
+    background-color: #32D657;
+}
