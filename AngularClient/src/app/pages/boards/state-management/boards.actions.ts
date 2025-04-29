@@ -19,8 +19,7 @@ export const updateTaskAction = createAction(
 );
 
 export const resetTaskAction = createAction(
-    '[Task] Update Task',
-    props<BoardTaskDto>()
+    '[Task] Update Task'
 );
 
 //Board Actions

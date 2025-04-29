@@ -13,6 +13,7 @@ import { TaskService } from './task/task.service';
 @Component({
     selector: 'app-boards',
     templateUrl: './boards.component.html',
+    styleUrls: ['./boards.component.scss'],
     host: {
         'class': 'h-full'
     },
@@ -22,7 +23,9 @@ export class BoardsComponent implements OnDestroy {
     private readonly _unsubscribeAll: Subject<any> = new Subject<any>();
     @ViewChild('matDrawer', { static: true }) matDrawer: MatDrawer;
     boardId: number;
+    boardEditMode: boolean;
     board: Observable<BoardDto>;
+    selectedTask: Observable<BoardTaskDto>;
     boardTasks: Observable<BoardTaskDto[]>;
     BoardTaskIcon = BoardTaskIcon;
     BoardTaskStatus = BoardTaskStatus;
@@ -40,6 +43,7 @@ export class BoardsComponent implements OnDestroy {
         this.board = this._store.select(selectBoard).pipe(
             takeUntil(this._unsubscribeAll),
             tap(board => {
+                debugger;
                 if (board)
                     this.boardForm.patchValue(board);
                 else
@@ -49,10 +53,10 @@ export class BoardsComponent implements OnDestroy {
 
         this.boardTasks = this._store.select(selectBoardTasks).pipe(
             takeUntil(this._unsubscribeAll));
-        this._store.select(selectTask).pipe(
+        this.selectedTask = this._store.select(selectTask).pipe(
             takeUntil(this._unsubscribeAll),
-            filter(() => !!this.matDrawer)
-        ).subscribe(task => (task?.id) ? this.matDrawer.toggle(true) : this.matDrawer.toggle(false));
+            filter(() => !!this.matDrawer),
+            tap(task => (task?.id) ? this.matDrawer.toggle(true) : this.matDrawer.toggle(false)));
         this._boardService.getBoard().subscribe(board => this._store.dispatch(loadBoardAction(board)));
     }
 
@@ -61,7 +65,10 @@ export class BoardsComponent implements OnDestroy {
             return;
         this.boardForm.disable({ emitEvent: false });
         const board = BoardDto.fromJS(this.boardForm.getRawValue());
-        this._boardService.saveBoard(board.id, board).subscribe();
+        this._boardService.saveBoard(board.id, board).subscribe(() => {
+            this.boardForm.enable({ emitEvent: false });
+            this.boardEditMode = false;
+        });
     }
 
     openTask(task: BoardTaskDto) {

@@ -1,0 +1,7 @@
+@use '@angular/material' as mat;
+
+// Customize the entire app. Change :root to your selector if you want to scope the styles.
+.delete {
+    @include mat.button-overrides((filled-container-color:#97A3B6,
+        ));
+}

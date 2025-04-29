@@ -1,77 +1,88 @@
 <mat-drawer-container class="flex-auto h-full" autosize>
-    <mat-drawer #matDrawer position="end" mode="over">
+    <mat-drawer #matDrawer position="end" [disableClose]="true" mode="over">
         <app-task></app-task>
     </mat-drawer>
     <div>
 
         <div class="flex flex-col max-w-md py-14 items-center m-auto">
             <div class="w-full shrink flex items-start justify-between gap-2">
-                <div class="text-4xl shrink">
-                    <mat-icon [inline]="true">home</mat-icon>
+                <div class="shrink h-10 w-10">
+                    <mat-icon [inline]="true" svgIcon="task_board:logo"></mat-icon>
                 </div>
-                <div class="flex flex-col grow items-start justify-between gap-2">
-                    <span class="text-4xl">My Task Board</span>
-                    <span>Tasks to keep organised</span>
-                </div>
-                <div class="shrink">
-                    <mat-icon>home</mat-icon>
-                </div>
+                <ng-container *ngIf="board | async as board">
+                    <div *ngIf="!boardEditMode" class="flex flex-col grow items-start justify-between gap-2">
+                        <span class="text-4xl">{{ board.name }} <mat-icon (click)="boardEditMode = !boardEditMode"
+                                svgIcon="task_board:edit_duotone"></mat-icon></span>
+                        <span>{{ board.description }}</span>
+                    </div>
+                    <form *ngIf="boardEditMode" [formGroup]="boardForm" (ngSubmit)="saveBoard()"
+                        class="flex flex-col grow items-start justify-between gap-2">
+                        <!-- name -->
+                        <div class="flex gap-2">
+                            <mat-form-field class="grow">
+                                <mat-label>Board name</mat-label>
+                                <input matInput formControlName="name" />
+                                <mat-error *ngIf="boardForm.controls.name.errors?.['required']">The task name is
+                                    required.</mat-error>
+                            </mat-form-field>
+                            <button mat-icon-button [disableRipple]="true" type="submit"
+                                [disabled]="boardForm.disabled">
+                                <mat-icon>save</mat-icon>
+                            </button>
+                        </div>
+
+                        <!-- description -->
+                        <mat-form-field class="w-full">
+                            <mat-label>Description</mat-label>
+                            <textarea matInput formControlName="description"></textarea>
+                        </mat-form-field>
+                    </form>
+                </ng-container>
             </div>
             <div class="w-full grow flex flex-col gap-4 mt-8">
-                <ng-container *ngIf="boardTasks | async as tasks">
-                    <div *ngFor="let task of tasks"
-                        class="w-full cursor-pointer h-18 flex gap-2 items-center justify-between rounded-xl"
-                        (click)="openTask(task)"
-                        [ngClass]="{'bg-pending' : task.status === BoardTaskStatus.Pending ,  'bg-progress' : task.status === BoardTaskStatus.OnProgress, 'bg-done': task.status === BoardTaskStatus.Done, 'bg-refused': task.status === BoardTaskStatus.Refused}">
-                        <div class="ml-4 shrink bg-white rounded-xl flex" [ngSwitch]="task.icon">
-                            <mat-icon *ngSwitchCase="BoardTaskIcon.Icon1" class="m-2">alarm</mat-icon>
-                            <mat-icon *ngSwitchCase="BoardTaskIcon.Icon2" class="m-2">local_cafe</mat-icon>
-                            <mat-icon *ngSwitchCase="BoardTaskIcon.Icon3" class="m-2">book</mat-icon>
-                            <mat-icon *ngSwitchCase="BoardTaskIcon.Icon4" class="m-2">access_time</mat-icon>
-                            <mat-icon *ngSwitchCase="BoardTaskIcon.Icon5" class="m-2">shopping_cart</mat-icon>
-                            <mat-icon *ngSwitchCase="BoardTaskIcon.Icon6" class="m-2">rowing</mat-icon>
+                <ng-container *ngIf="{tasks: boardTasks | async, selectedTask: selectedTask | async} as boardData">
+                    <div *ngFor="let task of boardData.tasks"
+                        class="w-full"
+                        [ngClass]="{'border-2 border-[#3662E3] task-padding rounded-3xl' : boardData.selectedTask?.id === task.id}">
+                        <div class="flex gap-2 items-center justify-between break-all cursor-pointer min-h-18 rounded-3xl"
+                            (click)="openTask(task)"
+                            [ngClass]="{'items-start' : !!task.description, 'bg-pending' : task.status === BoardTaskStatus.Pending ,  'bg-progress' : task.status === BoardTaskStatus.OnProgress, 'bg-done': task.status === BoardTaskStatus.Done, 'bg-refused': task.status === BoardTaskStatus.Refused}">
+                            <div [class.mt-4]="task.description" class="ml-4 shrink bg-white rounded-xl flex"
+                                [ngSwitch]="task.icon">
+                                <mat-icon *ngSwitchCase="BoardTaskIcon.Icon1" class="m-2">home</mat-icon>
+                                <mat-icon *ngSwitchCase="BoardTaskIcon.Icon2" class="m-2">local_cafe</mat-icon>
+                                <mat-icon *ngSwitchCase="BoardTaskIcon.Icon3" class="m-2">book</mat-icon>
+                                <mat-icon *ngSwitchCase="BoardTaskIcon.Icon4" class="m-2">access_time</mat-icon>
+                                <mat-icon *ngSwitchCase="BoardTaskIcon.Icon5" class="m-2">shopping_cart</mat-icon>
+                                <mat-icon *ngSwitchCase="BoardTaskIcon.Icon6" class="m-2">rowing</mat-icon>
+                            </div>
+                            <div [ngClass]="{'mx-2 my-4' : !!task.description}"
+                                class="flex grow flex-col items-start justify-start gap-2">
+                                <div class="text-xl font-semibold">{{ task.name }}</div>
+                                <div *ngIf="task.description">{{ task.description }}</div>
+                            </div>
+                            <ng-container [ngSwitch]="task.status">
+                                <div [class.mt-4]="task.description" class="mr-4 shrink bg-tulip-tree rounded-xl flex"
+                                    *ngSwitchCase="BoardTaskStatus.OnProgress">
+                                    <mat-icon svgIcon="task_board:time_atack_duotone" class="m-2"></mat-icon>
+                                </div>
+                                <div [class.mt-4]="task.description" class="mr-4 shrink bg-emerald rounded-xl flex"
+                                    *ngSwitchCase="BoardTaskStatus.Done">
+                                    <mat-icon svgIcon="task_board:done_round_duotone" class="m-2"></mat-icon>
+                                </div>
+                                <div [class.mt-4]="task.description" class="mr-4 shrink bg-flame-pea rounded-xl flex"
+                                    *ngSwitchCase="BoardTaskStatus.Refused">
+                                    <mat-icon svgIcon="task_board:close1" class="m-2"></mat-icon>
+                                </div>
+                            </ng-container>
                         </div>
-                        <div class="grow text-xl font-semibold">{{ task.name }}</div>
-                        <ng-container [ngSwitch]="task.status">
-                            <div class="mr-4 shrink bg-tulip-tree rounded-xl flex"
-                                *ngSwitchCase="BoardTaskStatus.OnProgress">
-                                <svg width="20" class="m-2" height="20" viewBox="0 0 20 20" fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="10" cy="10" r="7.5" fill="#F8FAFC" fill-opacity="0.25" />
-                                    <path
-                                        d="M9.99999 4.46669C9.99999 4.32388 9.99999 4.25248 10.0467 4.20813C10.0934 4.16377 10.1622 4.16731 10.2999 4.1744C11.2196 4.22174 12.1166 4.4863 12.9167 4.94821C13.8034 5.46019 14.5398 6.19658 15.0518 7.08335C15.5638 7.97013 15.8333 8.97606 15.8333 10C15.8333 11.024 15.5638 12.0299 15.0518 12.9167C14.5398 13.8035 13.8034 14.5399 12.9167 15.0518C12.0299 15.5638 11.024 15.8334 9.99999 15.8334C8.97603 15.8334 7.9701 15.5638 7.08332 15.0518C6.28329 14.5899 5.60566 13.9454 5.10479 13.1725C5.02983 13.0569 4.99235 12.999 5.00741 12.9364C5.02247 12.8738 5.08431 12.8381 5.20798 12.7667L9.84999 10.0866C9.92319 10.0444 9.9598 10.0232 9.97989 9.98842C9.99999 9.95361 9.99999 9.91135 9.99999 9.82682V4.46669Z"
-                                        fill="#F8FAFC" />
-                                </svg>
-                            </div>
-                            <div class="mr-4 shrink bg-emerald rounded-xl flex" *ngSwitchCase="BoardTaskStatus.Done">
-                                <svg width="20" class="m-2" height="20" viewBox="0 0 20 20" fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="10" cy="9.99998" r="6.66667" fill="#F8FAFC" fill-opacity="0.25" />
-                                    <path
-                                        d="M7.08333 9.16667L8.87623 10.9596C9.26675 11.3501 9.89992 11.3501 10.2904 10.9596L16.25 5"
-                                        stroke="#F8FAFC" stroke-width="1.2" stroke-linecap="round" />
-                                </svg>
-                            </div>
-                            <div class="mr-4 shrink bg-flame-pea rounded-xl flex"
-                                *ngSwitchCase="BoardTaskStatus.Refused">
-                                <svg width="20" class="m-2" height="20" viewBox="0 0 20 20" fill="none"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="10" cy="10" r="7.5" fill="#F8FAFC" fill-opacity="0.25" />
-                                    <path d="M7.5 7.5L12.5 12.5" stroke="#F8FAFC" stroke-width="1.2"
-                                        stroke-linecap="round" />
-                                    <path d="M12.5 7.5L7.5 12.5" stroke="#F8FAFC" stroke-width="1.2"
-                                        stroke-linecap="round" />
-                                </svg>
-                            </div>
-                        </ng-container>
-
                     </div>
                 </ng-container>
 
                 <div (click)="addTask()"
-                    class="w-full h-18 flex gap-2 bg-new items-center justify-between rounded-xl cursor-pointer">
-                    <div class="ml-4 shrink  bg-tulip-tree rounded-xl  flex">
-                        <mat-icon class="m-2">home</mat-icon>
+                    class="w-full h-18 flex gap-2 bg-new items-center justify-between rounded-3xl cursor-pointer">
+                    <div class="ml-4 shrink  bg-tulip-tree rounded-xl flex">
+                        <mat-icon class="m-2" svgIcon="task_board:add"></mat-icon>
                     </div>
                     <div class="grow font-semibold">Add new task</div>
                 </div>

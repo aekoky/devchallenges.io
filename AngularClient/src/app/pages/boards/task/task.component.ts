@@ -5,12 +5,12 @@ import { Store } from '@ngrx/store';
 import { BoardTaskDto, BoardTaskIcon, BoardTaskStatus } from 'app/web-api-client';
 import { TaskService } from './task.service';
 import { selectTask } from '../state-management/boards.selectors';
-import { deleteTaskAction } from '../state-management/boards.actions';
+import { deleteTaskAction, resetTaskAction } from '../state-management/boards.actions';
 
 @Component({
   selector: 'app-task',
   templateUrl: './task.component.html',
-  styleUrls: ['./task.component.css'],
+  styleUrls: ['./task.component.scss'],
   standalone: false
 })
 export class TaskComponent implements OnDestroy {
@@ -54,6 +54,10 @@ export class TaskComponent implements OnDestroy {
     this._taskService.deleteTask(this.task?.id).subscribe((task) => {
       this._store.dispatch(deleteTaskAction(this.task));
     });
+  }
+
+  closeTask() {
+    this._store.dispatch(resetTaskAction());
   }
 
   ngOnDestroy(): void {

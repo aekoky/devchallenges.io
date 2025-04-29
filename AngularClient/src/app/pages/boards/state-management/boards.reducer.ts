@@ -23,14 +23,12 @@ export const boardTasksReducer = createReducer(
         return state;
     }),
     on(BoardPageActions.updateTaskAction, (state, entityState) => {
-        debugger;
         const index = state.findIndex(task => task.id == entityState.id);
         if (index !== -1) {
             state = [...state];
             state[index] = entityState
         }
         return state;
-
     }),
     on(BoardPageActions.deleteTaskAction, (state, entityState) => {
         const index = state.findIndex(task => task.id == entityState.id);
@@ -52,6 +50,9 @@ export const taskReducer = createReducer(
         return undefined;
     }),
     on(BoardPageActions.deleteTaskAction, (state, entityState) => {
+        return undefined;
+    }),
+    on(BoardPageActions.resetTaskAction, (state) => {
         return undefined;
     }),
     on(BoardPageActions.openTaskAction, (state, entityState) => {
